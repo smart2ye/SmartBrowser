@@ -1,4 +1,4 @@
-name: Build APK
+name: Build APK (Copy Original Resources)
 on: push
 jobs:
   build:
@@ -11,21 +11,14 @@ jobs:
           java-version: '17'
       - run: sudo apt update && sudo apt install -y apktool
 
-      - name: Fix ids.xml and remove $ files
+      - name: Clean problematic files
         run: |
-          # حذف ملفات $ المزعجة
+          # حذف الملفات المزعجة فقط (بدون حذف مجلدات كاملة)
           find res/ -type f -name "*\$*.xml" -delete || true
-          # حذف public.xml لو موجود
-          rm -f res/values/public.xml || true
-          # إصلاح ids.xml: تحويل <id> إلى <item> (أو حذفه كلياً لو كان صغيراً)
-          if [ -f res/values/ids.xml ]; then
-            echo "🔧 Fixing ids.xml..."
-            # إما تحويل أو حذف، الحذف أسرع وأضمن
-            rm -f res/values/ids.xml
-            echo "✅ ids.xml removed."
-          fi
+          rm -f res/values/ids.xml res/values/public.xml || true
 
-      - run: apktool b . -o app.apk
+      - name: Build APK with --copy-original
+        run: apktool b . -o app.apk --copy-original
 
       - uses: actions/upload-artifact@v4
         with:
