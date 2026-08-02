@@ -10,7 +10,23 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - run: sudo apt update && sudo apt install -y apktool
+
+      - name: Fix ids.xml and remove $ files
+        run: |
+          # حذف ملفات $ المزعجة
+          find res/ -type f -name "*\$*.xml" -delete || true
+          # حذف public.xml لو موجود
+          rm -f res/values/public.xml || true
+          # إصلاح ids.xml: تحويل <id> إلى <item> (أو حذفه كلياً لو كان صغيراً)
+          if [ -f res/values/ids.xml ]; then
+            echo "🔧 Fixing ids.xml..."
+            # إما تحويل أو حذف، الحذف أسرع وأضمن
+            rm -f res/values/ids.xml
+            echo "✅ ids.xml removed."
+          fi
+
       - run: apktool b . -o app.apk
+
       - uses: actions/upload-artifact@v4
         with:
           name: SmartYe-Browser
